@@ -12,7 +12,7 @@
     function calculatePairings() {
       var label = document.getElementById("pairings");
       var out = "";
-      var parArray = ["sloth", "LemonPuffs", "TheNextSun", "thesirjay", "tabb"];
+      var parArray = ["sloth", "LemonPuffs", "TheNextSun", "thesirjay", "tabb", "gudtol"];
       var roundCount = 6;
       var gamArray = new Array();
       var numPlayers = parArray.length;
@@ -38,11 +38,10 @@
             
         }
         
-        //TODO Deal with odd number (will put in -1 for opponent and need to ensure they get next round)
-
+        //If there is an odd number one person will be exempt each round
         if (numPlayers %2 === 1) {
           //We have odd number need to deal with that
-          //First see if any games if so we need to sort out the exemptions
+          //First see if any games if so we need to sort out the current exemptions
           if (gamArray.length > 0) {
             
             //TODO if we anticipate more than 1 exemption per person remove extra exemptions to prevent duplicates
