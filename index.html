@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>KGS ROUND PAIRINGS LOOSELY'S GROUP ROOM</title>
+  <style>
+    body {
+      font-family: "Verdana", "Arial", sans-serif;
+    }
+  </style>
+  <script>
+    //Written by Jason Hill
+    function calculatePairings() {
+      var label = document.getElementById("pairings");
+      var out = "";
+      var parArray = ["sloth", "LemonPuffs", "TheNextSun", "thesirjay", "tabb"];
+      var roundCount = 6;
+      var gamArray = new Array();
+      var numPlayers = parArray.length;
+      
+      
+      function createRound(pGamArray, pNumPlayers) {
+        //We do not originally modify the gamArray as we want chance to "undo" this may be overkill
+        var gamArray = pGamArray.slice(0);
+        var numPlayers = pNumPlayers;
+        var numGames = 0;
+        var roundArray = new Array();
+        var posPlayers = new Array();
+        var ranIndex = 0;
+        var index = 0;
+        var indexValue = 0;
+        var nonDupOpponents = new Array();
+        var posExempts = new Array();
+        var opponentValue = 0;
+
+        //Setup all available players for this round
+        for (let i = 0; i < numPlayers; i++) {
+          posPlayers.push(i);
+            
+        }
+        
+        //TODO Deal with odd number (will put in -1 for opponent and need to ensure they get next round)
+
+        if (numPlayers %2 === 1) {
+          //We have odd number need to deal with that
+          //First see if any games if so we need to sort out the exemptions
+          if (gamArray.length > 0) {
+            
+            //TODO if we anticipate more than 1 exemption per person remove extra exemptions to prevent duplicates
+            posExempts = posPlayers.slice(0);
+
+            for (let i = 0; i < gamArray.length; i++) {
+              
+              if (gamArray[i][0] === -1) {
+                
+                opponentValue = gamArray[i][1]; 
+                index = posExempts.indexOf(opponentValue);
+                
+                if (index > -1) {
+                  posExempts.splice(index, 1);
+                }
+              }
+            }
+
+            //Splitting into 2 steps for readability
+            
+            if (posExempts.length > 0) {
+              ranIndex = Math.floor(Math.random() * posExempts.length);
+              //we set ranIndex equal to same as other standards to lower code duplication
+              ranIndex = posPlayers.indexOf(posExempts[ranIndex]);
+            } else {
+              //We already have "overflow exemptions" so just randomly pick one
+              ranIndex = Math.floor(Math.random() * posPlayers.length);
+
+            }
+
+          } else {
+            ranIndex = Math.floor(Math.random() * posPlayers.length);
+          }
+          
+          gamArray.push(new Array (-1, posPlayers[ranIndex]));
+          posPlayers.splice(ranIndex, 1);
+        }
+        
+        numGames = posPlayers.length / 2;
+        
+        for (let i = 0; i < numGames; i++) {
+  
+          ranIndex = Math.floor(Math.random() * posPlayers.length);
+          indexValue = posPlayers[ranIndex];
+          posPlayers.splice(ranIndex, 1);
+          //We know lucky player NOW we need to find them a non-duplicate match
+          nonDupOpponents = posPlayers.slice(0);
+
+          for (let j = 0; j < gamArray.length; j++) {
+
+            opponentValue = -1;
+            if (gamArray[j][0] === indexValue) {
+              opponentValue = gamArray[j][1];
+            } else if (gamArray[j][1] === indexValue && gamArray[j][0] != -1) {
+              opponentValue = gamArray[j][0];
+            }
+
+            if (opponentValue != -1) {
+              index = nonDupOpponents.indexOf(opponentValue);
+                
+              if (index > -1) {
+                nonDupOpponents.splice(index, 1);
+              }
+            }
+
+          }
+
+          if (nonDupOpponents.length > 0) {
+            ranIndex = Math.floor(Math.random() * nonDupOpponents.length);
+
+            opponentValue = nonDupOpponents[ranIndex];
+
+            gamArray.push(new Array (indexValue, opponentValue));
+
+            index = posPlayers.indexOf(opponentValue);
+                
+            if (index > -1) {
+              posPlayers.splice(index, 1);
+            }
+
+          } else {
+
+            ranIndex = Math.floor(Math.random() * posPlayers.length);
+
+            gamArray.push(new Array (indexValue, posPlayers[ranIndex]));
+            posPlayers.splice(ranIndex, 1);
+          }
+        }
+
+        return gamArray;
+      }
+
+      for (let i = 0; i < roundCount; i++) {
+
+        gamArray = createRound(gamArray, numPlayers); 
+      }
+
+      for (let i = 0; i < roundCount; i++) {
+        
+        //Add in break for all rounds but first
+        if (i > 0) {
+          out += "<br/>";
+        }
+
+        out += "Round " + (i + 1) + "<br/>" + "<br/>";
+        
+        for (let j = 0; j < Math.ceil(numPlayers/2) ; j++) {
+          
+          //index is based on rounds which are 2 players per game (with an extra one when exemptions)
+          index = i * Math.ceil(numPlayers/2) + j;
+
+         
+          if (gamArray[index][0] === -1) {
+            out += "<b>Exemption: " + parArray[gamArray[index][1]] + "</b><br/>" + "<br/>";
+          } else {
+          
+            out += "Game " + j + ": <b>" + parArray[gamArray[index][0]] + "</b> Versus <b>" + parArray[gamArray[index][1]] + "</b> <br/>";
+          }
+        
+        }
+
+      }
+
+      label.innerHTML = out;
+    }
+  </script>
+</head>
+<body onload="calculatePairings()">
+  <h3>Pairings List</h3>
+  <p id="pairings"></p>
+</body>
+</html>
