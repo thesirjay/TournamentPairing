@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>KGS ROUND PAIRINGS LOOSELY'S GROUP ROOM</title>
+  <title>2 Player Tournament Pairings</title>
   <style>
     body {
       font-family: "Verdana", "Arial", sans-serif;
@@ -12,51 +12,203 @@
     function calculatePairings() {
       var label = document.getElementById("pairings");
 
-      //  //                  0          1            2             3          4        5         6          7          8
-      //  var parArray = ["sloth", "LemonPuffs", "TheNextSun", "thesirjay", "tabb", "gudtol", "dansugo", "coyote", "mabblebrox"];
-      // var roundCount = 6;
-      // var gamArray = new Array([-1,8],[0,1],[2,5],[6,7],[4,3],[-1,8],[7,5],[1,4],[2,6],[0,3],[-1,7],[5,6],[8,2],[1,3],[4,0],[-1,6],[2,0],[4,8],[5,1],[3,7],[-1,0],[1,6],[3,8],[7,2],[4,5]);
-      var out = "";
-      var parArray = ["sloth", "LemonPuffs", "TheNextSun", "thesirjay", "tabb", "gudtol", "dansugo", "coyote", "mabblebrox"];
+      var htmlOut = "";
+      var parArray = ["Player0", "Player1", "Player2", "Player3", "Player4", "Player5", "Player6", "Player7", "Player8"];
       var roundCount = 6;
-      var gamArray = new Array();
+      var gamesArray = new Array();
       var numPlayers = parArray.length;
       
+
+      function removeFromSorted(pDeleteIndex, pSortedArray) {
+        var sortedArray = pSortedArray;
+        var deleteIndex = pDeleteIndex
+        var findIndex = -1;
+        
+        for (let i = 0; i < sortedArray.length; i++) {
+              
+          if (sortedArray[i].playerIndex === deleteIndex) {
+
+            sortedArray.splice(i, 1);
+            i--;
+            
+
+          } else {
+            
+            findIndex = sortedArray[i].opponentArray.indexOf(deleteIndex);
+
+            if (findIndex != -1) {
+              sortedArray[i].opponentArray.splice(findIndex, 1);
+            }
+            
+
+          } 
+        }
+        return sortedArray;
+      }
       
-      function createRound(pGamArray, pNumPlayers) {
-        //We do not originally modify the gamArray as we want chance to "undo" this may be overkill
-        var gamArray = pGamArray.slice(0);
+      function findRandomLowestSorted(pSortedArray) {
+        
+        var randomEligibleCount = 1;
+        var sortedArray = pSortedArray.slice(0);
+        var randomIndex = -1;
+        
+        if (sortedArray[0]) {
+          
+          for (let i = 1; i < sortedArray.length; i++) {
+            if (sortedArray[i].length === sortedArray[0].length) {
+              randomEligibleCount++;
+            } else {
+              //We are now too large so higher indexes won't be part of random
+              break;
+            }
+          }
+          return Math.floor(Math.random() * randomEligibleCount);
+          
+        }
+      }
+
+
+      function findRandomLowestOpponent(pSortedArray, pSortIndex) {
+        var randomArray = new Array();
+        var sortedArray = pSortedArray.slice(0);
+        var randomIndex = -1;
+        var sortIndex = pSortIndex;
+        var arrayLength = -1;
+        var reSortArray = new Array();
+        var reSortIndex = -1;
+        var opponentLength = -1;
+
+
+        if (sortedArray[0]) {
+          randomArray = sortedArray[sortIndex].opponentArray;
+          
+          for (let i = 0; i < randomArray.length; i++) {
+            resortIndex = randomArray[i];
+
+            for (let j = 0; j < sortedArray.length; j++) {
+              
+              if (sortedArray[j].playerIndex === resortIndex) {
+                opponentLength = sortedArray[j].opponentArray.length;
+                break;
+              }
+            }
+
+            reSortArray.push({playerIndex: resortIndex, opponentLength: opponentLength});
+          }  
+           
+          reSortArray.sort(function(a, b) {
+            var a = a.opponentLength;
+            var b = b.opponentLength;
+
+            return a - b;
+          });
+        
+        
+        }
+        
+        if (reSortArray[0]) {
+          return reSortArray[0].playerIndex;
+        }
+        
+      }    
+            
+
+      function createRound(pgamesArray, pNumPlayers) {
+        //We do not originally modify the gamesArray as we want chance to "undo" this may be overkill
+        var gamesArray = pgamesArray.slice(0);
         var numPlayers = pNumPlayers;
         var numGames = 0;
         var roundArray = new Array();
-        var posPlayers = new Array();
+        //var posPlayers = new Array();
         var ranIndex = 0;
         var index = 0;
+        var playerIndex = 0;
         var indexValue = 0;
         var nonDupOpponents = new Array();
         var posExempts = new Array();
         var opponentValue = 0;
+        var posGames = new Array();
+        var playerPossibleGames = new Array();
+        var exemptRandom = new Array();
+        var sortedPossiblePlayerGames = new Array();
+        var exemptLength = -1;
 
         //Setup all available players for this round
         for (let i = 0; i < numPlayers; i++) {
-          posPlayers.push(i);
+          //posPlayers.push(i);
+          posGames = new Array();
+          for (let j = 0; j < numPlayers; j++) {
+            if (j != i) {
+              posGames.push(j);
+            }
             
+          }
+          playerPossibleGames.push(posGames.slice(0));
         }
+        
+        for (let i = 0; i < gamesArray.length; i++) {
+              
+          if (gamesArray[i][0] === -1) {
+
+            //This does not block you from future games so do nothing to playerGames
+
+          } else {
+            opponentValue = gamesArray[i][1]; 
+            
+            playerIndex = gamesArray[i][0];
+            
+            index = playerPossibleGames[playerIndex].indexOf(opponentValue);
+            
+            if (index > -1) {
+              playerPossibleGames[playerIndex].splice(index, 1);
+            }
+ 
+            index = playerPossibleGames[opponentValue].indexOf(playerIndex);
+            
+            if (index > -1) {
+              playerPossibleGames[opponentValue].splice(index, 1);
+            }
+
+
+          }
+        }
+
+        
+        
+        for (let i = 0; i < numPlayers; i++) {
+          //sortedPossiblePlayerGames.push([i][playerPossibleGames[i]]);
+
+          sortedPossiblePlayerGames.push({playerIndex: i, opponentArray: playerPossibleGames[i].slice(0)});
+
+        }
+        
+       
+        sortedPossiblePlayerGames.sort(function(a, b) {
+          var aArray = a.opponentArray;
+          var bArray = b.opponentArray;
+          
+          return aArray.length - bArray.length;
+        })
+        
         
         //If there is an odd number one person will be exempt each round
         if (numPlayers %2 === 1) {
           //We have odd number need to deal with that
           //First see if any games if so we need to sort out the current exemptions
-          if (gamArray.length > 0) {
+          
+          for (let i = 0; i < numPlayers; i++) {
+            posExempts.push(i);
+          }
+
+          if (gamesArray.length > 0) {
             
             //TODO if we anticipate more than 1 exemption per person remove extra exemptions to prevent duplicates
-            posExempts = posPlayers.slice(0);
 
-            for (let i = 0; i < gamArray.length; i++) {
+            for (let i = 0; i < gamesArray.length; i++) {
               
-              if (gamArray[i][0] === -1) {
+              if (gamesArray[i][0] === -1) {
                 
-                opponentValue = gamArray[i][1]; 
+                opponentValue = gamesArray[i][1]; 
                 index = posExempts.indexOf(opponentValue);
                 
                 if (index > -1) {
@@ -65,114 +217,129 @@
               }
             }
 
-            //Splitting into 2 steps for readability
-            
-            if (posExempts.length > 0) {
-              ranIndex = Math.floor(Math.random() * posExempts.length);
-              //we set ranIndex equal to same as other standards to lower code duplication
-              ranIndex = posPlayers.indexOf(posExempts[ranIndex]);
-            } else {
-              //We already have "overflow exemptions" so just randomly pick one
-              ranIndex = Math.floor(Math.random() * posPlayers.length);
-
-            }
-
-          } else {
-            ranIndex = Math.floor(Math.random() * posPlayers.length);
           }
-          
-          gamArray.push(new Array (-1, posPlayers[ranIndex]));
-          posPlayers.splice(ranIndex, 1);
-        }
-        
-        numGames = posPlayers.length / 2;
-        
-        for (let i = 0; i < numGames; i++) {
-  
-          ranIndex = Math.floor(Math.random() * posPlayers.length);
-          indexValue = posPlayers[ranIndex];
-          posPlayers.splice(ranIndex, 1);
-          //We know lucky player NOW we need to find them a non-duplicate match
-          nonDupOpponents = posPlayers.slice(0);
 
-          for (let j = 0; j < gamArray.length; j++) {
-
-            opponentValue = -1;
-            if (gamArray[j][0] === indexValue) {
-              opponentValue = gamArray[j][1];
-            } else if (gamArray[j][1] === indexValue && gamArray[j][0] != -1) {
-              opponentValue = gamArray[j][0];
-            }
-
-            if (opponentValue != -1) {
-              index = nonDupOpponents.indexOf(opponentValue);
-                
-              if (index > -1) {
-                nonDupOpponents.splice(index, 1);
+          //We want to do random to make this more appealing so first lets get a random "to match" value
+          for (let i = 0; i < sortedPossiblePlayerGames.length; i++) {
+            indexValue = sortedPossiblePlayerGames[i].playerIndex;
+            index = posExempts.indexOf(indexValue);
+            if (index != -1) {
+              if (exemptLength === -1) {
+                exemptLength = sortedPossiblePlayerGames[i].opponentArray.length;
+                exemptRandom.push(indexValue);
+              } else if (sortedPossiblePlayerGames[i].opponentArray.length === exemptLength) {
+                exemptRandom.push(indexValue);
+              } else {
+                //values now are higher in length so we can skip rest
+                break;
               }
             }
-
           }
 
-          if (nonDupOpponents.length > 0) {
-            ranIndex = Math.floor(Math.random() * nonDupOpponents.length);
+        
 
-            opponentValue = nonDupOpponents[ranIndex];
+          index = Math.floor(Math.random() * exemptRandom.length);
+          indexValue = exemptRandom[index];
 
-            gamArray.push(new Array (indexValue, opponentValue));
+          index = posExempts.indexOf(indexValue);
+          
+          gamesArray.push(new Array (-1, indexValue));
+          sortedPossiblePlayerGames = removeFromSorted(indexValue, sortedPossiblePlayerGames);
 
-            index = posPlayers.indexOf(opponentValue);
-                
-            if (index > -1) {
-              posPlayers.splice(index, 1);
-            }
+          // console.log("STARTED SORTED POST EXEMPT....");
+          
+          // for (let i = 0; i < sortedPossiblePlayerGames.length; i++) {
 
-          } else {
-            console.log("no available non-duplicates with " + gamArray.toString());
-            console.log("no available non-duplicates for " + indexValue);
-            ranIndex = Math.floor(Math.random() * posPlayers.length);
+          //   console.log("Player" +  sortedPossiblePlayerGames[i].playerIndex + " available games length = " + sortedPossiblePlayerGames[i].opponentArray.length + " and games = " + sortedPossiblePlayerGames[i].opponentArray.toString());
+          // } 
+        
+          // console.log("COMPLETED SORTED POST EXEMPT....");
 
-            gamArray.push(new Array (indexValue, posPlayers[ranIndex]));
-            posPlayers.splice(ranIndex, 1);
-          }
+         
         }
 
-        return gamArray;
+       
+
+        numGames = sortedPossiblePlayerGames.length / 2;
+        
+      
+        for (let j = 0; j < numGames; j++) {
+  
+          sortedPossiblePlayerGames.sort(function(a, b) {
+            var aArray = a.opponentArray;
+            var bArray = b.opponentArray;
+            
+            return aArray.length - bArray.length;
+          })
+
+          if (sortedPossiblePlayerGames[0]) {
+            
+            index = findRandomLowestSorted(sortedPossiblePlayerGames);
+            //console.log("index = " + index);
+            indexValue = sortedPossiblePlayerGames[index].playerIndex;
+            //console.log("indexValue = " + indexValue);
+            
+            opponentValue = findRandomLowestOpponent(sortedPossiblePlayerGames, index);
+
+            if (opponentValue === undefined) {
+
+              //Due to randomness the player has no non-duplicate matches - give match to available player with lowest games available count
+              console.log("Due to no non duplicate matches made duplicate match");
+              if (index === 0) {
+                opponentValue = sortedPossiblePlayerGames[1].playerIndex;
+              } else {
+                opponentValue = sortedPossiblePlayerGames[0].playerIndex;
+              }
+             
+            }
+           
+            gamesArray.push(new Array (indexValue, opponentValue));
+
+            sortedPossiblePlayerGames = removeFromSorted(indexValue,sortedPossiblePlayerGames);
+            sortedPossiblePlayerGames = removeFromSorted(opponentValue,sortedPossiblePlayerGames);
+
+          }
+          
+        }
+
+        return gamesArray;
       }
 
       for (let i = 0; i < roundCount; i++) {
 
-        gamArray = createRound(gamArray, numPlayers); 
+        gamesArray = createRound(gamesArray, numPlayers); 
       }
 
       for (let i = 0; i < roundCount; i++) {
         
         //Add in break for all rounds but first
         if (i > 0) {
-          out += "<br/>";
+          htmlOut += "<br/>";
         }
 
-        out += "Round " + (i + 1) + "<br/>" + "<br/>";
+        htmlOut += "Round " + (i + 1) + "<br/>" + "<br/>";
         
         for (let j = 0; j < Math.ceil(numPlayers/2) ; j++) {
           
           //index is based on rounds which are 2 players per game (with an extra one when exemptions)
           index = i * Math.ceil(numPlayers/2) + j;
 
-         
-          if (gamArray[index][0] === -1) {
-            out += "<b>Exemption: " + parArray[gamArray[index][1]] + "</b><br/>" + "<br/>";
-          } else {
+          if (gamesArray[index]) {
           
-            out += "Game " + (j + 1) + ": <b>" + parArray[gamArray[index][0]] + "</b> Versus <b>" + parArray[gamArray[index][1]] + "</b> <br/>";
+            if (gamesArray[index][0] === -1) {
+              htmlOut += "<b>Exemption: " + parArray[gamesArray[index][1]] + "</b><br/>" + "<br/>";
+            } else {
+            
+              htmlOut += "Game " + (j + 1) + ": <b>" + parArray[gamesArray[index][0]] + "</b> Versus <b>" + parArray[gamesArray[index][1]] + "</b> <br/>";
+            }
           }
-        
         }
 
       }
 
 
       /* QA CHECK CODE */
+      ///*
       var playerQAArray = new Array();
       var playedAgainstArray = new Array();
       var posPlayers = new Array();
@@ -184,19 +351,19 @@
 
       for (let i = 0; i < posPlayers.length; i++) {
         playedAgainstArray = new Array();
-        for (let j = 0; j <gamArray.length; j++) {
-            if (gamArray[j][0] === i) {
-              playedAgainstArray.push(gamArray[j][1]);
+        for (let j = 0; j <gamesArray.length; j++) {
+            if (gamesArray[j][0] === i) {
+              playedAgainstArray.push(gamesArray[j][1]);
 
-            } else if (gamArray[j][1] === i) {
-              playedAgainstArray.push(gamArray[j][0]);
+            } else if (gamesArray[j][1] === i) {
+              playedAgainstArray.push(gamesArray[j][0]);
             }
         }  
         playerQAArray.push(playedAgainstArray.slice(0));
         console.log("Player " + i + " played against " + playedAgainstArray.slice(0));
       }
       //*/
-      label.innerHTML = out;
+      label.innerHTML = htmlOut;
     }
   </script>
 </head>
